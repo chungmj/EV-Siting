@@ -3,13 +3,16 @@ import pandas as pd
 
 df = pd.read_csv('Non-Tesla Level 2 (Apr 20 2022).csv', usecols=[
                  'State', 'Longitude', 'Latitude', 'EV DC Fast Count', 'EV Level2 EVSE Num', 'EV Level1 EVSE Num'])
+dftruck = pd.read_csv('VA Truck Stops.csv')
 
 # Filter the data to obtain the locations of Non-Tesla chargers located in Virginia
 
 # The vadf dataframe filiters all the data so it only includes the chargers located within the state of Virginia
 
 vadf = df.loc[df.State == 'VA']
+dftruck = dftruck.loc[dftruck.Highway == 'I-81']
 
+dftruck.to_csv('I-81_Truck_Stops.csv', index = False)
 # The df81 dataframe filters the data for the EV chargers located within the horizontal stretch of I-81
 
 df81 = vadf[vadf['Latitude'].between(36.6, 39.3)]
