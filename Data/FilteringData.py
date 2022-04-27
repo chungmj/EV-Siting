@@ -4,7 +4,7 @@ import pandas as pd
 df = pd.read_csv('Non-Tesla Level 2 (Apr 20 2022).csv', usecols=[
                  'State', 'Longitude', 'Latitude', 'EV DC Fast Count', 'EV Level2 EVSE Num', 'EV Level1 EVSE Num'])
 
-# Filter the data to obtain the locations of Non-Tesla Level 2 chargers located in Virginia
+# Filter the data to obtain the locations of Non-Tesla chargers located in Virginia
 
 # The vadf dataframe filiters all the data so it only includes the chargers located within the state of Virginia
 
