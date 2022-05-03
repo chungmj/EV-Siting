@@ -42,7 +42,6 @@ for row in dftruck['full_address']:
     else:
         latitude = location.latitude
         longitude = location.longitude
-
     lat.append(latitude)
     long.append(longitude)
 
