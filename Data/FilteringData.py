@@ -49,7 +49,7 @@ for row in dftruck['full_address']:
 # adds a longitude and latitude column to the data frame
 dftruck['latitude'] = lat
 dftruck['longitude'] = long
-
+dftruck.to_csv('Truck_Stop_Points.csv', index= False)
 # Drops all the truck stops where a GPS coordinate was not found
 dftruck = dftruck.dropna()
 map = folium.Map(location=[37.806507, -
