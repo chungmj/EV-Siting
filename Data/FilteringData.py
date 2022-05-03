@@ -48,12 +48,11 @@ for row in dftruck['full_address']:
 # adds a longitude and latitude column to the data frame
 dftruck['latitude'] = lat
 dftruck['longitude'] = long
-dftruck.to_csv('Truck_Stop_Points.csv', index= False)
-# Drops all the truck stops where a GPS coordinate was not found
-dftruck = dftruck.dropna()
+
+alltruckstops = pd.read_csv('Truck_Stop_Points.csv')
 map = folium.Map(location=[37.806507, -
                  79.389342], zoom_start=8)
-for index, row in dftruck.iterrows():
+for index, row in alltruckstops.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude'])).add_to(map)
 
 map.save('map1.html')
