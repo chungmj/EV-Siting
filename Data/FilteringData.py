@@ -1,43 +1,61 @@
+from IPython.display import display
+import webbrowser
 import pandas as pd
-# Loading the data from the csv file to only obtain the state, longitude and latitude coordinates for the charging stations
+import folium
+from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
 
-df = pd.read_csv('Non-Tesla Level 2 (Apr 20 2022).csv', usecols=[
-                 'State', 'Longitude', 'Latitude', 'EV DC Fast Count', 'EV Level2 EVSE Num', 'EV Level1 EVSE Num'])
+# Loading the data from the csv for truck stops in Virginia
 dftruck = pd.read_csv('VA Truck Stops.csv')
 
-# Filter the data to obtain the locations of Non-Tesla chargers located in Virginia
-
-# The vadf dataframe filiters all the data so it only includes the chargers located within the state of Virginia
-
-vadf = df.loc[df.State == 'VA']
+# filtering the data to only include the truck stops located off of I-81
 dftruck = dftruck.loc[dftruck.Highway == 'I-81']
 
-dftruck.to_csv('I-81_Truck_Stops.csv', index = False)
-# The df81 dataframe filters the data for the EV chargers located within the horizontal stretch of I-81
+# Removes the decimal place that is part of the zip code
+dftruck['ZIP'] = dftruck['ZIP'].astype(int)
 
-df81 = vadf[vadf['Latitude'].between(36.6, 39.3)]
-df81 = df81.sort_values('Latitude')
+# Makes the zipcode into a string so it can be used later in writing the full address of the truck stop
+dftruck['ZIP'] = dftruck['ZIP'].astype(str)
+# Making a csv file to hold all the data for the truck stops located off of I-81
 
-# The df81lvl1 dataframe filters the data inside the stretch of I-81 to include only the level 1 chargers and their locations
+# Adds a column that contains the full address of the truck stop
+dftruck['full_address'] = dftruck.Street_Address + ',' + \
+    dftruck.City + ',' + dftruck.State + ',' + dftruck.ZIP
 
-df81lvl1 = df81[df81['EV Level1 EVSE Num'] >= 1]
-df81lvl1 = df81lvl1[['State', 'Longitude', 'Latitude', 'EV Level1 EVSE Num']]
+# Removes the qutation marks that the full address has
+dftruck['full_address'] = dftruck.full_address.replace('""', '')
 
-#Creating a csv file for the level1 chargers located along I-81
-df81lvl1.to_csv('I-81_Level1_Chargers.csv', index=False)
+# sets up the geolocator so it can be used to read the addresses of the truck stops and coverts them to gps coordinates
+geolocator = Nominatim(user_agent="Python")
 
-# The df81lvl2 dataframe filters the data inside the stretch of I-81 to include only the level 2 chargers and their locations
+# Empty lists for the latitude and longitude coordinates of each address
+lat = []
+long = []
 
-df81lvl2 = df81[df81['EV Level2 EVSE Num'] >= 1]
-df81lvl2 = df81lvl2[['State', 'Longitude', 'Latitude', 'EV Level2 EVSE Num']]
+# This function loops through the truck stops addresses and checks if the address has a GPS coordinate, if a GPS coordinate is not found
+# it returns None for the latitude and longitude, if it is found it returns the latitude and longitude
+for row in dftruck['full_address']:
+    location = geolocator.geocode(row)
+    if location is None:
+        latitude = None
+        longitude = None
+    else:
+        latitude = location.latitude
+        longitude = location.longitude
 
-#Creating a csv file for the level2 chargers located along I-81
-df81lvl2.to_csv('I-81_Level2_Chargers.csv', index=False)
+    lat.append(latitude)
+    long.append(longitude)
 
-# The df81DC dataframe filters the data inside the stretch of I-81 to include only the DC fast chargers and their locations
+# adds a longitude and latitude column to the data frame
+dftruck['latitude'] = lat
+dftruck['longitude'] = long
 
-df81DC = df81[df81['EV DC Fast Count'] >= 1]
-df81DC = df81DC[['State', 'Longitude', 'Latitude', 'EV DC Fast Count']]
+# Drops all the truck stops where a GPS coordinate was not found
+dftruck = dftruck.dropna()
+map = folium.Map(location=[37.806507, -
+                 79.389342], zoom_start=8)
+for index, row in dftruck.iterrows():
+    folium.Marker(location=(row['latitude'], row['longitude'])).add_to(map)
 
-#Creating a csv file for the DC Fast chargers located along I-81
-df81DC.to_csv('I-81_DC_Fast_Chargers.csv', index=False)
+map.save('map1.html')
+webbrowser.open('map1.html')
