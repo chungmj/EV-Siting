@@ -110,16 +110,22 @@ truckstopwithcharger = pd.DataFrame()
 truck = []
 closestcharger = []
 mindist = []
+lati = []
+long = []
 for index, row in df.iterrows():
     if row['distance(mi)'] <= 1:
         truck.append(row['Exit'])
         closestcharger.append(row['Station_Name'])
         mindist.append(row['distance(mi)'])
+        lati.append(row['latitude'])
+        long.append(row['longitude'])
     else:
         continue
 truckstopwithcharger['Truck_Stop_Exit'] = truck
 truckstopwithcharger['Charger'] = closestcharger
 truckstopwithcharger['distancetocharger'] = mindist
+truckstopwithcharger['latitude'] = lati
+truckstopwithcharger['longitude'] = long
 
 nextstation = pd.DataFrame()
 distancetstop = []
@@ -128,14 +134,18 @@ other = []
 for idx, row in truckstopwithcharger.iterrows():
     for index, rowt in alltruckstops.iterrows():
         tstop = distance.geodesic((row['latitude'], row['longitude']), (rowt['latitude'], rowt['longitude'])).mi
-        distancetstop.append(tstop)
-        central.append(row['Exit'])
-        other.append(rowt['Exit'])
+        if tstop <= 50 and tstop != 0:
+            distancetstop.append(tstop)
+            central.append(row['Truck_Stop_Exit'])
+            other.append(rowt['full_address'])
+        else:
+            continue
 
 nextstation['Tstop Charger'] = central
-nextstation['Tstop Exit'] = other
+nextstation['Address of Candidates'] = other
 nextstation['distance(mi)'] = distancetstop
-print(nextstation)
+
+
 # Creating the map and plotting all the GPS coordinates on the map
 # map = folium.Map(location=[37.806507, -
 #                  79.389342], zoom_start=8)
