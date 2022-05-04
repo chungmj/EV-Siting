@@ -78,20 +78,22 @@ df81DC = altDC[altDC['Longitude'].between(-82.2, -78.1)]
 df81DC = df81DC.sort_values(['Longitude'])
 
 
-# Calculating distance between each point
-
+# Convert latitude longitude coordinates from integers to floats
 
 alltruckstops['latitude'] = alltruckstops['latitude'].astype(float)
 alltruckstops['longitude'] = alltruckstops['longitude'].astype(float)
 
 df81DC['Latitude'] = df81DC['Latitude'].astype(float)
 df81DC['Longitude'] = df81DC['Longitude'].astype(float)
+
+# Calculating distance between all truck stops and all ev chargers
 df = pd.DataFrame()
 dist = []
 truckstop = []
 evcharger = []
 latit = []
 longi = []
+
 for idx, row in alltruckstops.iterrows():
     for index, rowdc in df81DC.iterrows():
         vectordist = distance.geodesic(
@@ -109,51 +111,56 @@ df['latitude'] = latit
 df['longitude'] = longi
 
 
+# Find truck stops that are within 1 mile of an EV charger and add them into a list that represents
+# trucks stops with a charging station
 truckstopwithcharger = pd.DataFrame()
-truck = []
-closestcharger = []
+exit = []
+station_name = []
 mindist = []
 lati = []
 long = []
 for index, row in df.iterrows():
     if row['distance(mi)'] <= 1:
-        truck.append(row['Exit'])
-        closestcharger.append(row['Station_Name'])
+        exit.append(row['Exit'])
+        station_name.append(row['Station_Name'])
         mindist.append(row['distance(mi)'])
         lati.append(row['latitude'])
         long.append(row['longitude'])
     else:
         continue
-truckstopwithcharger['Truck_Stop_Exit'] = truck
-truckstopwithcharger['Charger'] = closestcharger
+truckstopwithcharger['Truck_Stop_Exit'] = exit
+truckstopwithcharger['Charger'] = station_name
 truckstopwithcharger['distancetocharger'] = mindist
 truckstopwithcharger['latitude'] = lati
 truckstopwithcharger['longitude'] = long
 
-nextstation = pd.DataFrame()
-distancetstop = []
-central = []
-other = []
+# Find distance between truck stops without a charger and truck stops with a charger.
+# Then add the truck stops without a charger that are less than or equal to 50 miles away from a truck stop with
+# a charger into a list that represents the potential candidates.
+candidates = pd.DataFrame()
+distance_stations = []
+exit_for_stop = []
+candidate_address = []
 la = []
 lo = []
 for idx, row in truckstopwithcharger.iterrows():
     for index, rowt in alltruckstops.iterrows():
-        tstop = distance.geodesic(
+        station_dist = distance.geodesic(
             (row['latitude'], row['longitude']), (rowt['latitude'], rowt['longitude'])).mi
-        if tstop <= 50 and tstop != 0:
-            distancetstop.append(tstop)
-            central.append(row['Truck_Stop_Exit'])
-            other.append(rowt['full_address'])
+        if station_dist <= 50 and station_dist != 0:
+            distance_stations.append(station_dist)
+            exit_for_stop.append(row['Truck_Stop_Exit'])
+            candidate_address.append(rowt['full_address'])
             la.append(rowt['latitude'])
             lo.append(rowt['longitude'])
         else:
             continue
 
-nextstation['Tstop Charger'] = central
-nextstation['Address of Candidates'] = other
-nextstation['distance(mi)'] = distancetstop
-nextstation['latitude'] = la
-nextstation['longitude'] = lo
+candidates['Tstop Charger'] = exit_for_stop
+candidates['Address of Candidates'] = candidate_address
+candidates['distance(mi)'] = distance_stations
+candidates['latitude'] = la
+candidates['longitude'] = lo
 
 # Creating the map and plotting all the GPS coordinates on the map
 map = folium.Map(location=[37.806507, -
@@ -164,7 +171,7 @@ for index, row in alltruckstops.iterrows():
         color='purple')).add_to(map)
 
 
-for index, row in nextstation.iterrows():
+for index, row in candidates.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude'])).add_to(map)
 
 
