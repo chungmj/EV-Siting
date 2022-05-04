@@ -88,30 +88,67 @@ df = pd.DataFrame()
 dist = []
 truckstop = []
 evcharger = []
+latit = []
+longi = []
 for idx, row in alltruckstops.iterrows():
     for index, rowdc in df81DC.iterrows():
         vectordist = distance.geodesic((row['latitude'], row['longitude']), (rowdc['Latitude'], rowdc['Longitude'])).mi
         dist.append(vectordist)
         truckstop.append(row['Exit'])
         evcharger.append(rowdc['Station Name'])
+        latit.append(row['latitude'])
+        longi.append(row['longitude'])
 df = pd.DataFrame()
 df['Exit'] = truckstop
 df['Station_Name'] = evcharger
 df['distance(mi)'] = dist
-print(df)
+df['latitude'] = latit
+df['longitude'] = longi
+
+
+truckstopwithcharger = pd.DataFrame()
+truck = []
+closestcharger = []
+mindist = []
+for index, row in df.iterrows():
+    if row['distance(mi)'] <= 1:
+        truck.append(row['Exit'])
+        closestcharger.append(row['Station_Name'])
+        mindist.append(row['distance(mi)'])
+    else:
+        continue
+truckstopwithcharger['Truck_Stop_Exit'] = truck
+truckstopwithcharger['Charger'] = closestcharger
+truckstopwithcharger['distancetocharger'] = mindist
+
+nextstation = pd.DataFrame()
+distancetstop = []
+central = []
+other = []
+for idx, row in truckstopwithcharger.iterrows():
+    for index, rowt in alltruckstops.iterrows():
+        tstop = distance.geodesic((row['latitude'], row['longitude']), (rowt['latitude'], rowt['longitude'])).mi
+        distancetstop.append(tstop)
+        central.append(row['Exit'])
+        other.append(rowt['Exit'])
+
+nextstation['Tstop Charger'] = central
+nextstation['Tstop Exit'] = other
+nextstation['distance(mi)'] = distancetstop
+print(nextstation)
 # Creating the map and plotting all the GPS coordinates on the map
-map = folium.Map(location=[37.806507, -
-                 79.389342], zoom_start=8)
-for index, row in alltruckstops.iterrows():
-    folium.Marker(location=(row['latitude'], row['longitude'])).add_to(map)
+# map = folium.Map(location=[37.806507, -
+#                  79.389342], zoom_start=8)
+# for index, row in alltruckstops.iterrows():
+#     folium.Marker(location=(row['latitude'], row['longitude'])).add_to(map)
 
-for index, row in df81lvl2.iterrows():
-    folium.Marker(location=(row['Latitude'], row['Longitude']),icon=folium.Icon(color='red')).add_to(map)
+# for index, row in df81lvl2.iterrows():
+#     folium.Marker(location=(row['Latitude'], row['Longitude']),icon=folium.Icon(color='red')).add_to(map)
 
-for index, row in df81DC.iterrows():
-    folium.Marker(location=(row['Latitude'], row['Longitude']),icon=folium.Icon(color='orange')).add_to(map)
+# for index, row in df81DC.iterrows():
+#     folium.Marker(location=(row['Latitude'], row['Longitude']),icon=folium.Icon(color='orange')).add_to(map)
 
 
-map.save('map1.html')
-webbrowser.open('map1.html')
+# map.save('map1.html')
+# webbrowser.open('map1.html')
 
