@@ -2,6 +2,7 @@ from IPython.display import display
 import webbrowser
 import pandas as pd
 import folium
+from geopy import distance
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 
@@ -49,11 +50,31 @@ for row in dftruck['full_address']:
 dftruck['latitude'] = lat
 dftruck['longitude'] = long
 
+# Has all the points found in the above function and for every none type found, had to make edits to manually add the latitude and longitude
 alltruckstops = pd.read_csv('Truck_Stop_Points.csv')
+
+
+altlvl2 = pd.read_csv('alt_fuel_stations (Apr 25 2022).csv', usecols= ['EV Level2 EVSE Num', 'Latitude', 'Longitude'])
+altDC = pd.read_csv('alt_fuel_stations (Apr 25 2022).csv', usecols= ['EV DC Fast Count', 'Latitude', 'Longitude'])
+altlvl2['EV Level2 EVSE Num'] = altlvl2['EV Level2 EVSE Num'].dropna
+altlvl2['Longitude'] = altlvl2['Longitude'].astype(float)
+df81lvl2 = altlvl2[altlvl2['Longitude'].between(-82.2, -78.1)]
+
+altDC['EV DC Fast Count'] = altDC['EV DC Fast Count'].dropna
+altDC['Longitude'] = altDC['Longitude'].astype(float)
+df81DC = altDC[altDC['Longitude'].between(-82.2, -78.1)]
+
+
+
 map = folium.Map(location=[37.806507, -
                  79.389342], zoom_start=8)
 for index, row in alltruckstops.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude'])).add_to(map)
 
+for index, row in df81lvl2.iterrows():
+    folium.Marker(location=(row['Latitude'], row['Longitude']),icon=folium.Icon(color='red')).add_to(map)
+
+
 map.save('map1.html')
 webbrowser.open('map1.html')
+
