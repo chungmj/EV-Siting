@@ -197,32 +197,35 @@ for idx, row in candidates.iterrows():
 map = folium.Map(location=[37.806507, -
                  79.389342], zoom_start=8)
 
+truckstops = folium.FeatureGroup(name= 'Truck Stops without EV charger (red)')
+evtruckstop = folium.FeatureGroup(name= 'Truck Stop with EV charger (orange)')
+evchargers = folium.FeatureGroup(name= 'EV DC Fast Chargers (green)')
+possibletruckstops = folium.FeatureGroup(name= 'Possible new locations for EV truck stops (blue)')
+
 # Plotting points of all the truck stops located along I-81
 for index, row in alltruckstops.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude']), icon=folium.Icon(
-        color='red'), popup=row['full_address']).add_to(map)
-    
+        color='red'), popup=row['full_address']).add_to(truckstops)
+    truckstops.add_to(map)
 # Plotting all points for the potential candidates that are within 50 miles of the truck stop with a EV charger
 for index, row in candidates.iterrows():
-    folium.Marker(location=(row['latitude'], row['longitude']), popup=str(int(row['distance(mi)'])) + ' miles from truck stop with a charger').add_to(map)
+    folium.Marker(location=(row['latitude'], row['longitude']), popup=str(int(row['distance(mi)'])) + ' miles from truck stop with a charger').add_to(possibletruckstops)
+    possibletruckstops.add_to(map)
 
 # Plotting all the points for the EV chargers located near I-81
 for index, row in df81DC.iterrows():
     folium.Marker(location=(row['Latitude'], row['Longitude']), icon=folium.Icon(
-        color='green'), popup='Number of DC Fast Chargers =' + str(row['EV DC Fast Count'])).add_to(map)
-
-# Plotting the truck stop with an EV charger and showing it by a circle since map indicator is covered by another marker
-for index, row in truckstopwithcharger.iterrows():
-    folium.CircleMarker(location=(row['latitude'], row['longitude']), icon=folium.Icon(
-        color='orange'), popup=row['Charger'], radius=40).add_to(map)
+        color='green'), popup='Number of DC Fast Chargers =' + str(row['EV DC Fast Count'])).add_to(evchargers)
+    evchargers.add_to(map)
 
 # Plotting the truck stop with an EV charger
 for index, row in truckstopwithcharger.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude']), icon=folium.Icon(
-        color='orange'), popup=row['Charger']).add_to(map)
+        color='orange'), popup=row['Charger']).add_to(evtruckstop)
+    evtruckstop.add_to(map)
 
-truckstops = folium.FeatureGroup(name= 'Truck Stops without EV charger')
-map.add_child(truckstops)
+
 folium.map.LayerControl('topleft', collapsed= False).add_to(map)
+
 map.save('map1.html')
 webbrowser.open('map1.html')
