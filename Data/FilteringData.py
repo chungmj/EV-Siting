@@ -162,26 +162,35 @@ candidates['distance(mi)'] = distance_stations
 candidates['latitude'] = la
 candidates['longitude'] = lo
 
+
+# Dropping all duplicated values before plotting points on the map
+
+for idx, row in candidates.iterrows():
+    for index, rowt in alltruckstops.iterrows():
+        if rowt['full_address'] == row['Address of Candidates']:
+            alltruckstops = alltruckstops.drop(index)
+        else:
+            continue
+
 # Creating the map and plotting all the GPS coordinates on the map
 map = folium.Map(location=[37.806507, -
                  79.389342], zoom_start=8)
 
+
 for index, row in alltruckstops.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude']), icon=folium.Icon(
-        color='purple')).add_to(map)
+        color='red'), popup=row['full_address']).add_to(map)
 
 
 for index, row in candidates.iterrows():
-    folium.Marker(location=(row['latitude'], row['longitude'])).add_to(map)
+    folium.Marker(location=(row['latitude'], row['longitude']), popup=str(int(row['distance(mi)'])) + ' miles from truck stop with a charger').add_to(map)
 
 
 for index, row in truckstopwithcharger.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude']), icon=folium.Icon(
-        color='red')).add_to(map)
+        color='orange'), popup=row['Charger']).add_to(map)
 
-for index, row in df81DC.iterrows():
-    folium.Marker(location=(row['Latitude'], row['Longitude']), icon=folium.Icon(
-        color='orange')).add_to(map)
+
 
 
 map.save('map1.html')
