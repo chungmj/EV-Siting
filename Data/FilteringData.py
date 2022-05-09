@@ -128,6 +128,7 @@ for index, row in df.iterrows():
         long.append(row['longitude'])
     else:
         continue
+# Putting all the data into a dataframe for the truckstop with a charger
 truckstopwithcharger['Truck_Stop_Exit'] = exit
 truckstopwithcharger['Charger'] = station_name
 truckstopwithcharger['distancetocharger'] = mindist
@@ -155,7 +156,7 @@ for idx, row in truckstopwithcharger.iterrows():
             lo.append(rowt['longitude'])
         else:
             continue
-
+# Putting all the data found for truckstops within 50 miles of the truckstop with a charger
 candidates['Tstop Charger'] = exit_for_stop
 candidates['Address of Candidates'] = candidate_address
 candidates['distance(mi)'] = distance_stations
@@ -172,26 +173,56 @@ for idx, row in candidates.iterrows():
         else:
             continue
 
+# Distance between each truck stop
+# truck_dist = []
+# canadd = []
+# truckadd = []
+# for idx, row in candidates.iterrows():
+#     for index, rowt in alltruckstops.iterrows():
+#         station_dist = distance.geodesic(
+#             (row['latitude'], row['longitude']), (rowt['latitude'], rowt['longitude'])).mi
+#         if station_dist <50:
+#             truck_dist.append(station_dist)
+#             canadd.append(row['Address of Candidates'])
+#             truckadd.append(rowt['full_address'])
+#         else:
+#             continue
+# distances = pd.DataFrame()
+# distances['candidate'] = canadd
+# distances['truckstop'] = truckadd
+# distances['truck_dist'] = truck_dist
+# print(distances)
+
 # Creating the map and plotting all the GPS coordinates on the map
 map = folium.Map(location=[37.806507, -
                  79.389342], zoom_start=8)
 
-
+# Plotting points of all the truck stops located along I-81
 for index, row in alltruckstops.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude']), icon=folium.Icon(
         color='red'), popup=row['full_address']).add_to(map)
-
-
+    
+# Plotting all points for the potential candidates that are within 50 miles of the truck stop with a EV charger
 for index, row in candidates.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude']), popup=str(int(row['distance(mi)'])) + ' miles from truck stop with a charger').add_to(map)
 
+# Plotting all the points for the EV chargers located near I-81
+for index, row in df81DC.iterrows():
+    folium.Marker(location=(row['Latitude'], row['Longitude']), icon=folium.Icon(
+        color='green'), popup='Number of DC Fast Chargers =' + str(row['EV DC Fast Count'])).add_to(map)
 
+# Plotting the truck stop with an EV charger and showing it by a circle since map indicator is covered by another marker
+for index, row in truckstopwithcharger.iterrows():
+    folium.CircleMarker(location=(row['latitude'], row['longitude']), icon=folium.Icon(
+        color='orange'), popup=row['Charger'], radius=40).add_to(map)
+
+# Plotting the truck stop with an EV charger
 for index, row in truckstopwithcharger.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude']), icon=folium.Icon(
         color='orange'), popup=row['Charger']).add_to(map)
 
-
-
-
+truckstops = folium.FeatureGroup(name= 'Truck Stops without EV charger')
+map.add_child(truckstops)
+folium.map.LayerControl('topleft', collapsed= False).add_to(map)
 map.save('map1.html')
 webbrowser.open('map1.html')
