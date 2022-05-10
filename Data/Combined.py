@@ -150,7 +150,7 @@ for idx, row in truckstopwithcharger.iterrows():
     for index, rowt in alltruckstops.iterrows():
         station_dist = distance.geodesic(
             (row['latitude'], row['longitude']), (rowt['latitude'], rowt['longitude'])).mi
-        if station_dist <= 50 and station_dist > 1:
+        if station_dist <= 50 and station_dist != 0:
             distance_stations.append(station_dist)
             exit_for_stop.append(row['Truck_Stop_Exit'])
             candidate_address.append(rowt['full_address'])

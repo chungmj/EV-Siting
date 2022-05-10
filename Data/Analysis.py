@@ -65,8 +65,7 @@ df['latitude'] = latit
 df['longitude'] = longi
 df['Truck Stop Address'] = tstopwith
 
-
-# Find truck stops that are within 1 mile of an EV charger and add them into a list that represents
+# Find truck stops that are within 0.6 miles of an EV charger and add them into a list that represents
 # trucks stops with a charging station
 truckstopwithcharger = pd.DataFrame()
 exit = []
@@ -107,7 +106,7 @@ for idx, row in truckstopwithcharger.iterrows():
     for index, rowt in alltruckstops.iterrows():
         station_dist = distance.geodesic(
             (row['latitude'], row['longitude']), (rowt['latitude'], rowt['longitude'])).mi
-        if station_dist <= 50 and station_dist > 1:
+        if station_dist <= 50 and station_dist != 0:
             distance_stations.append(station_dist)
             exit_for_stop.append(row['Truck_Stop_Exit'])
             candidate_address.append(rowt['full_address'])
@@ -135,7 +134,7 @@ for idx, row in candidates.iterrows():
 # on a map
 
 # alltruckstops.to_csv('Truck_Stops_Without_EV_Chargers.csv', index=False)
-# candidates.to_csv('Potential_Candidates.csv', index=False)
+candidates.to_csv('Potential_Candidates.csv', index=False)
 # df81DC.to_csv('DC_Fast_Chargers_81.csv', index=False)
 # df81lvl2.to_csv('Level2_Chargers_81.csv', index=False)
 # truckstopwithcharger.to_csv('Truck_Stops_With_Charger.csv', index=False)
