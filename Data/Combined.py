@@ -1,10 +1,8 @@
-from IPython.display import display
-import webbrowser
 import pandas as pd
-import folium
-from geopy import distance
 from geopy.geocoders import Nominatim
-
+import folium
+import webbrowser
+from geopy import distance
 
 # Loading the data from the csv for truck stops in Virginia
 dftruck = pd.read_csv('VA Truck Stops.csv')
@@ -17,7 +15,6 @@ dftruck['ZIP'] = dftruck['ZIP'].astype(int)
 
 # Makes the zipcode into a string so it can be used later in writing the full address of the truck stop
 dftruck['ZIP'] = dftruck['ZIP'].astype(str)
-
 
 # Adds a column that contains the full address of the truck stop
 dftruck['full_address'] = dftruck.Street_Address + ',' + \
@@ -50,21 +47,16 @@ for row in dftruck['full_address']:
 dftruck['latitude'] = lat
 dftruck['longitude'] = long
 
-# This was used to save the filtered data as a csv file, so the truck stops that didn't have latitude and longitude coordinates
-# could be manually added to include them
-
-# dftruck.to_csv('Updatedlist.csv', index=False)
-
-# Has all the points found in the above function and for every none type found, had to make edits to manually add the latitude and longitude
-alltruckstops = pd.read_csv('Truck_Stop_Points.csv')
+# Importing data from FindCoordinates to be used to calculate distances and finding potentential candidates for new EV truck stops
+alltruckstops = pd.read_csv('Updated_Truck_Stops.csv')
 
 # Loading in data for the EV level 2 chargers
 altlvl2 = pd.read_csv('alt_fuel_stations (Apr 25 2022).csv', usecols=[
-                      'EV Level2 EVSE Num', 'Latitude', 'Longitude'])
+                      'EV Level2 EVSE Num', 'Latitude', 'Longitude', 'Station Name', 'Street Address', 'City'])
 
 # Loading in data for the EV DC fast chargers
 altDC = pd.read_csv('alt_fuel_stations (Apr 25 2022).csv', usecols=[
-                    'EV DC Fast Count', 'Latitude', 'Longitude', 'Station Name'])
+                    'EV DC Fast Count', 'Latitude', 'Longitude', 'Station Name', 'Street Address', 'City'])
 
 
 # Filtering the EV level 2 chargers so it only includes points closer to I-81 and drops the values that don't have a charger
@@ -82,7 +74,6 @@ df81DC = altDC[altDC['Longitude'].between(-82.2, -78.1)]
 # Sorts the values from the bottom of I-81 to the top of I-81
 df81DC = df81DC.sort_values(['Longitude'])
 
-
 # Convert latitude longitude coordinates from integers to floats
 
 alltruckstops['latitude'] = alltruckstops['latitude'].astype(float)
@@ -98,7 +89,7 @@ truckstop = []
 evcharger = []
 latit = []
 longi = []
-
+tstopwith = []
 for idx, row in alltruckstops.iterrows():
     for index, rowdc in df81DC.iterrows():
         vectordist = distance.geodesic(
@@ -108,15 +99,17 @@ for idx, row in alltruckstops.iterrows():
         evcharger.append(rowdc['Station Name'])
         latit.append(row['latitude'])
         longi.append(row['longitude'])
+        tstopwith.append(row['full_address'])
 df = pd.DataFrame()
 df['Exit'] = truckstop
 df['Station_Name'] = evcharger
 df['distance(mi)'] = dist
 df['latitude'] = latit
 df['longitude'] = longi
+df['Truck Stop Address'] = tstopwith
 
 
-# Find truck stops that are within 1 mile of an EV charger and add them into a list that represents
+# Find truck stops that are within 0.6 miles of an EV charger and add them into a list that represents
 # trucks stops with a charging station
 truckstopwithcharger = pd.DataFrame()
 exit = []
@@ -124,6 +117,7 @@ station_name = []
 mindist = []
 lati = []
 long = []
+tstopaddress = []
 for index, row in df.iterrows():
     if row['distance(mi)'] <= 0.6:
         exit.append(row['Exit'])
@@ -131,14 +125,17 @@ for index, row in df.iterrows():
         mindist.append(row['distance(mi)'])
         lati.append(row['latitude'])
         long.append(row['longitude'])
+        tstopaddress.append(row['Truck Stop Address'])
     else:
         continue
+
 # Putting all the data into a dataframe for the truckstop with a charger
 truckstopwithcharger['Truck_Stop_Exit'] = exit
 truckstopwithcharger['Charger'] = station_name
 truckstopwithcharger['distancetocharger'] = mindist
 truckstopwithcharger['latitude'] = lati
 truckstopwithcharger['longitude'] = long
+truckstopwithcharger['Truck Stop Address'] = tstopaddress
 
 # Find distance between truck stops without a charger and truck stops with a charger.
 # Then add the truck stops without a charger that are less than or equal to 50 miles away from a truck stop with
@@ -153,7 +150,7 @@ for idx, row in truckstopwithcharger.iterrows():
     for index, rowt in alltruckstops.iterrows():
         station_dist = distance.geodesic(
             (row['latitude'], row['longitude']), (rowt['latitude'], rowt['longitude'])).mi
-        if station_dist <= 50 and station_dist != 0:
+        if station_dist <= 50 and station_dist > 1:
             distance_stations.append(station_dist)
             exit_for_stop.append(row['Truck_Stop_Exit'])
             candidate_address.append(rowt['full_address'])
@@ -162,7 +159,7 @@ for idx, row in truckstopwithcharger.iterrows():
         else:
             continue
 # Putting all the data found for truckstops within 50 miles of the truckstop with a charger
-candidates['Tstop Charger'] = exit_for_stop
+candidates['Exit of Truck Stop with Charger'] = exit_for_stop
 candidates['Address of Candidates'] = candidate_address
 candidates['distance(mi)'] = distance_stations
 candidates['latitude'] = la
@@ -196,25 +193,25 @@ for index, row in alltruckstops.iterrows():
 
 # Plotting all points for the potential candidates that are within 50 miles of the truck stop with a EV charger
 for index, row in candidates.iterrows():
-    folium.Marker(location=(row['latitude'], row['longitude']), popup=str(int(row['distance(mi)'])) + ' miles from truck stop with a charger').add_to(possibletruckstops)
+    folium.Marker(location=(row['latitude'], row['longitude']), popup=str(int(row['distance(mi)'])) + 'miles from truck stop with a charger ' + '<br>' + 'Address of truck stop: ' + row['Address of Candidates']).add_to(possibletruckstops)
     possibletruckstops.add_to(map)
 
 # Plotting all the points for the EV DC Fast chargers located near I-81
 for index, row in df81DC.iterrows():
     folium.Marker(location=(row['Latitude'], row['Longitude']), icon=folium.Icon(
-        color='green'), popup='Number of DC Fast Chargers =' + str(row['EV DC Fast Count'])).add_to(dcchargers)
+        color='green'), popup='Number of DC Fast Chargers: ' + str(int(row['EV DC Fast Count']))).add_to(dcchargers)
     dcchargers.add_to(map)
 
 # Plotting all the points for the EV level 2 chargers near I-81
 for index, row in df81lvl2.iterrows():
     folium.Marker(location=(row['Latitude'], row['Longitude']), icon=folium.Icon(
-        color='purple'), popup='Number of level 2 chargers =' + str(row['EV Level2 EVSE Num'])).add_to(lvl2chargers)
+        color='purple'), popup='Number of level 2 chargers =' + str(int(row['EV Level2 EVSE Num']))).add_to(lvl2chargers)
     lvl2chargers.add_to(map)
 
 # Plotting the truck stop with an EV charger
 for index, row in truckstopwithcharger.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude']), icon=folium.Icon(
-        color='orange'), popup=row['Charger']).add_to(evtruckstop)
+        color='orange'), popup='EV Station name: ' + str(row['Charger']) + '<br>' +' Truck stop address: '  + str(row['Truck Stop Address'])).add_to(evtruckstop)
     evtruckstop.add_to(map)
 
 # Adding a legend to the map which can be turned on and off
