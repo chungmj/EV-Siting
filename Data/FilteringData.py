@@ -4,13 +4,13 @@ import pandas as pd
 import folium
 from geopy import distance
 from geopy.geocoders import Nominatim
-from geopy.extra.rate_limiter import RateLimiter
+
 
 # Loading the data from the csv for truck stops in Virginia
 dftruck = pd.read_csv('VA Truck Stops.csv')
 
 # filtering the data to only include the truck stops located off of I-81
-dftruck = dftruck.loc[dftruck.Highway == 'I-81']
+dftruck = dftruck[dftruck['Highway'].str.contains("81")]
 
 # Removes the decimal place that is part of the zip code
 dftruck['ZIP'] = dftruck['ZIP'].astype(int)
@@ -49,6 +49,11 @@ for row in dftruck['full_address']:
 # adds a longitude and latitude column to the data frame
 dftruck['latitude'] = lat
 dftruck['longitude'] = long
+
+# This was used to save the filtered data as a csv file, so the truck stops that didn't have latitude and longitude coordinates
+# could be manually added to include them
+
+# dftruck.to_csv('Updatedlist.csv', index=False)
 
 # Has all the points found in the above function and for every none type found, had to make edits to manually add the latitude and longitude
 alltruckstops = pd.read_csv('Truck_Stop_Points.csv')
@@ -120,7 +125,7 @@ mindist = []
 lati = []
 long = []
 for index, row in df.iterrows():
-    if row['distance(mi)'] <= 1:
+    if row['distance(mi)'] <= 0.6:
         exit.append(row['Exit'])
         station_name.append(row['Station_Name'])
         mindist.append(row['distance(mi)'])
@@ -165,7 +170,6 @@ candidates['longitude'] = lo
 
 
 # Dropping all duplicated values before plotting points on the map
-
 for idx, row in candidates.iterrows():
     for index, rowt in alltruckstops.iterrows():
         if rowt['full_address'] == row['Address of Candidates']:
@@ -200,6 +204,7 @@ for index, row in df81DC.iterrows():
     folium.Marker(location=(row['Latitude'], row['Longitude']), icon=folium.Icon(
         color='green'), popup='Number of DC Fast Chargers =' + str(row['EV DC Fast Count'])).add_to(dcchargers)
     dcchargers.add_to(map)
+
 # Plotting all the points for the EV level 2 chargers near I-81
 for index, row in df81lvl2.iterrows():
     folium.Marker(location=(row['Latitude'], row['Longitude']), icon=folium.Icon(
