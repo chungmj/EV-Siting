@@ -47,6 +47,6 @@ dftruck['latitude'] = lat
 dftruck['longitude'] = long
 
 # This was used to save the filtered data as a csv file, so the truck stops that didn't have latitude and longitude coordinates
-# could be manually added to include them
+# could be manually added to include them and then saved as a new filename (Updated_Truck_Stops.csv) for the Analysis 
 
-# dftruck.to_csv('Updatedlist.csv', index=False)
+# dftruck.to_csv('Known_Truck_Stops.csv', index=False)
