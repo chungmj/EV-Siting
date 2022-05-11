@@ -174,6 +174,7 @@ for idx, row in candidates.iterrows():
         else:
             continue
 candidates.drop_duplicates(subset=['Address of Candidates'], keep='first', inplace=True)
+
 # Creating the map and plotting all the GPS coordinates on the map
 map = folium.Map(location=[37.806507, -
                  79.389342], zoom_start=8)

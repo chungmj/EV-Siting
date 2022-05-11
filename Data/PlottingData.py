@@ -14,11 +14,12 @@ map = folium.Map(location=[37.806507, -
                  79.389342], zoom_start=8)
 
 # Creating groups for a legend to be shown on the map
-truckstops = folium.FeatureGroup(name= 'Truck Stops without EV charger (red)')
-evtruckstop = folium.FeatureGroup(name= 'Truck Stop with EV charger (orange)')
-dcchargers = folium.FeatureGroup(name= 'EV DC Fast Chargers (green)')
-possibletruckstops = folium.FeatureGroup(name= 'Possible new locations for EV truck stops (blue)')
-lvl2chargers = folium.FeatureGroup(name= 'Level 2 Chargers (purple)')
+truckstops = folium.FeatureGroup(name='Truck Stops without EV charger (red)')
+evtruckstop = folium.FeatureGroup(name='Truck Stop with EV charger (orange)')
+dcchargers = folium.FeatureGroup(name='EV DC Fast Chargers (green)')
+possibletruckstops = folium.FeatureGroup(
+    name='Possible new locations for EV truck stops (blue)')
+lvl2chargers = folium.FeatureGroup(name='Level 2 Chargers (purple)')
 
 # Plotting points of all the truck stops located along I-81
 for index, row in alltruckstops.iterrows():
@@ -28,7 +29,8 @@ for index, row in alltruckstops.iterrows():
 
 # Plotting all points for the potential candidates that are within 50 miles of the truck stop with a EV charger
 for index, row in candidates.iterrows():
-    folium.Marker(location=(row['latitude'], row['longitude']), popup=str(int(row['distance(mi)'])) + 'miles from truck stop with a charger ' + '<br>' + 'Address of truck stop: ' + row['Address of Candidates']).add_to(possibletruckstops)
+    folium.Marker(location=(row['latitude'], row['longitude']), popup=str(int(row['distance(mi)'])) + 'miles from truck stop exit:' + str(
+        row['Exit of Truck Stop with Charger']) + ' with a charger ' + '<br>' + 'Address of Candidate: ' + row['Address of Candidates']).add_to(possibletruckstops)
     possibletruckstops.add_to(map)
 
 # Plotting all the points for the EV DC Fast chargers located near I-81
@@ -46,11 +48,11 @@ for index, row in df81lvl2.iterrows():
 # Plotting the truck stop with an EV charger
 for index, row in truckstopwithcharger.iterrows():
     folium.Marker(location=(row['latitude'], row['longitude']), icon=folium.Icon(
-        color='orange'), popup='EV Station name: ' + str(row['Charger']) + '<br>' +' Truck stop address: '  + str(row['Truck Stop Address'])).add_to(evtruckstop)
+        color='orange'), popup='EV Station name: ' + str(row['Charger']) + '<br>' + ' Truck stop address: ' + str(row['Truck Stop Address'])).add_to(evtruckstop)
     evtruckstop.add_to(map)
 
 # Adding a legend to the map which can be turned on and off
-folium.map.LayerControl('topleft', collapsed= False).add_to(map)
+folium.map.LayerControl('topleft', collapsed=False).add_to(map)
 
 # Saving the map and opening the map so it can be visible
 map.save('map1.html')
