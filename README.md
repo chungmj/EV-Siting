@@ -1,5 +1,7 @@
 **Data Analysis Final Project**
 
+I-81 is an extensive transportation and shipping corridor that is frequented by commercial vehicles. This means there is a high amount of traffic along the interstate, which raises a concern for air quality. So, how do we begin to support Electric Commercial Vehicles along I-81 to promote the use of alternative fuel and the improvement of air quality? Our client, Virginia Clean Cities, is interested in knowing the truck stops along I-81 that can serve as a candidate for installing new Electric Vehicle (EV) Charging stations in order to extend the commercial electric vehicle corridor along I-81. To be considered a candidate, the truck stop must be within 50 miles away from another charging station, one mile away from an exit on I-81, and it must not currently have an EV Charging station.
+
 In the Data folder it contains all the data provided to the group from Virginia Clean Cities, which are named alt_fuel_stations (Apr 25 2022).csv and VA Truck Stops.csv, edits were made manually to the VA Truck Stops.csv to included the addresses of all the truck stops located along I-81, to be used in the next python script for analysis.
 
 
