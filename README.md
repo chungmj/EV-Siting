@@ -2,6 +2,16 @@
 
 In the Data folder it contains all the data provided to the group from Virginia Clean Cities, which are named alt_fuel_stations (Apr 25 2022).csv and VA Truck Stops.csv, edits were made manually to the VA Truck Stops.csv to included the addresses of all the truck stops located along I-81, to be used in the next python script for analysis.
 
+
+**Required Installs before running**
+
+pip install pandas
+
+pip install folium
+
+pip install geopy
+
+
 **FindingCoordinates.py**
 
 The first step in the final analysis was finding all the truck stops located off of I-81 and verifying that the truck stops were located within 1 mile of I-81, a filter was applied at the beginning of the code to only obtain the truck stops located off of I-81. By using the addresses of each of the truck stops, utilizing Nominatim, to find the GPS coordinates of each truck stops. Edits were made manually to the Updated_Truck_Stops.csv, the file that is created at the end of the python script, due to Nominatim not being able to find the GPS coordinates of all the truck stops. 
